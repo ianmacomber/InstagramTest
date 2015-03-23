@@ -83,7 +83,7 @@ for j in range(len(userfeed[0])):
     #print(userfeed[0][j])
     #print(userfeed[0][j])
     #print(type(userfeed[0][j]))
-    #recentlikers = api.media_likes(userfeed[0][j].id)
+    recentlikers = api.media_likes(userfeed[0][j].id)
     #print(recentlikers)
 
     for i in range(len(recentlikers)):
