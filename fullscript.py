@@ -2,6 +2,7 @@ from instagram.client import InstagramAPI
 import operator
 import time
 import json
+import sys
 
 INSTAGRAM_CLIENT_ID = 'ab909284384242d3a9588475d3974c92'
 INSTAGRAM_CLIENT_SECRET = 'e3e3ceff63c3415b971e7d8d217f6181'
@@ -24,8 +25,6 @@ a = len(lines[0])-1
 b = lines[0][1:a]
 bstrip = b.split(",")
 
-#print(bstrip)
-
 for i in bstrip:
     c, d = i.replace(" ", "").replace('"', '').split(":")
     allusers[c] = int(d)
@@ -35,14 +34,18 @@ firstlen = len(allusers)
 print("Current dictionary has {0} people".format(firstlen))
 
 increment = 0
-while increment < 5:
+while increment < 2:
     # Get the most recent picture
     try:
         userfeed = api.user_recent_media(user_id=slalomtokyodrift.id, count=1)
         recentlikers = api.media_likes(userfeed[0][0].id) # This might not be a list of lists anymore
     # If it doesn't work, wait 500 seconds and return to the top of the while loop.
+    # But there are two kinds of errors -- one is too many API calls, one is a call to a private user!
+    # So what I need to do is add PRIVATE USERS to the dicionary as well with a zero.
     except:
-        print("API Error")
+        print("API Error getting most recent pic")
+        e = sys.exc_info()[0]
+        print(e)
         time.sleep(500)
         continue
 
@@ -55,17 +58,23 @@ while increment < 5:
             else:
                  guy = api.user(recentlikers[i].id)
                  allusers.update({guy.username:guy.counts['followed_by']})
-                 print("Added {0}".format(guy.username))
-                 print(time.strftime("%Y-%m-%d %H:%M:%S"))
+                 print("Added public user {0} ".format(guy.username), time.strftime("%Y-%m-%d %H:%M:%S"))
                  time.sleep(.5)
+        # If the user is private, add them.
         except:
-            print("API Error")
-            time.sleep(500)
+            if recentlikers[i].username in allusers.keys():
+                pass
+            else:
+                allusers.update({recentlikers[i].username:0})
+                print("Added private user {0} ".format(recentlikers[i]), time.strftime("%Y-%m-%d %H:%M:%S"))
+            #e = sys.exc_info()[0]
+            #print(e)
+            time.sleep(.5)
             pass
     
     increment = increment + 1
     print("We are on increment {0}".format(increment))
-    time.sleep(500)
+    time.sleep(50)
 
 print(sorted(allusers.items(), key=operator.itemgetter(1)))
 print("We added {0} users.".format(len(allusers)-firstlen))
